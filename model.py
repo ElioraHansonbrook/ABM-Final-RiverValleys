@@ -14,15 +14,35 @@ class RiverValley(Model):
                 height: int = 5,
                 width: int = 5,
                 agentCount: int = 25,
+                e1FarmedPortionPerPerson: float,
+                e2FarmingDecayRate: float,
+                e3InfrastructureDecayRate: float,
+                e4ReproductionFraction: float,
+                e5DeathThreshold: float,
+                e6ReproductionThreshold: float,
+                c1InitialClimateLowerThreshold: float,
+                c2InitialClimateUpperThreshold: float,
+                c3DisruptionClimateLowerThreshold: float,
+                c4DisruptionClimateUpperThreshold: float,
                 ) -> None:
         super().__init__(*args, seed=seed, rng=rng, scenario=scenario,)
         self.height = height
         self.width = width
+        self.e1FarmedPortionPerPerson = e1FarmedPortionPerPerson
+        self.e2FarmingDecayRate = e2FarmingDecayRate
+        self.e3InfrastructureDecayRate = e3InfrastructureDecayRate
+        self.e4ReproductionFraction = e4ReproductionFraction
+        self.e5DeathThreshold = e5DeathThreshold
+        self.e6ReproductionThreshold = e6ReproductionThreshold
+        self.c1InitialClimateLowerThreshold = c1InitialClimateLowerThreshold
+        self.c2InitialClimateUpperThreshold = c2InitialClimateUpperThreshold
+        self.c3DisruptionClimateLowerThreshold = c3DisruptionClimateLowerThreshold
+        self.c4DisruptionClimateUpperThreshold = c4DisruptionClimateUpperThreshold
         self.grid = HexMultiGrid(width = width, height = height, torus = False)
         self.generateTileFertility(0) #FIX AND REPLACE WITH GENERATOR
         self.assignAgents(agentCount)
 
-    # Set the fertility of each individual tile, surrounding the river.
+    # Set the fertility of each individual tile, starting with the river.
     def generateTileFertility(self, generator):
         pass
 
@@ -30,10 +50,24 @@ class RiverValley(Model):
     def assignAgents(self, count):
         pass
 
-    # A single step of the model
-    def step(self):
+    def setTileValuesForRound(self):
         pass
 
-#Test sequence
-if __name__ == "__main__":
-    model = RiverValley(height=5, width=5)
+    def calculateTileYields(self):
+        pass
+
+    def feedAgents(self):
+        pass
+
+    def updateTiles(self):
+        pass
+
+    # A single step of the model
+    def step(self):
+        self.setTileValuesForRound()
+        self.agents.do("updatePreference")
+        self.calculateTileYields()
+        self.feedAgents()
+        self.agents.do("reproduction")
+        self.updateTiles()
+        self.agents.do("move")

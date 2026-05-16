@@ -14,10 +14,19 @@ class Person(Agent):
         self.age = age
         self.lifeExpectancy = lifeExpectancy
         self.food = (0,0)
+
+    # Update the age of the agent, and kill if needed
+    def ageUpdates(self):
+        pass
     
     # Update the preference of the model as the first step in a round.
     def updatePreference(self):
         pass
+    
+    # Attempt reproduction, if requirements are met
+    def reproduction(self):
+        pass
 
-    def collectFood(self):
+    # If another adjacent tile would have provided greater utility this round, AND this agent is suffering, move to the best tile.
+    def move(self):
         pass
