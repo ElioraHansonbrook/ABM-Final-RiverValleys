@@ -50,21 +50,20 @@ class RiverValley(Model):
     def assignAgents(self, count):
         pass
 
-    def setTileValuesForRound(self):
-        pass
-
+    # Set the total possible yields for a tile in the given round
     def calculateTileYields(self):
         pass
 
+    # Assign food to agents on each tile, based on agent preferences and food availability
     def feedAgents(self):
         pass
 
+    # Update the infrastructure and farmed proportions on each tile.
     def updateTiles(self):
         pass
 
     # A single step of the model
     def step(self):
-        self.setTileValuesForRound()
         self.agents.do("updatePreference")
         self.calculateTileYields()
         self.feedAgents()
