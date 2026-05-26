@@ -1,8 +1,15 @@
+"""
+model.py
+
+ABM Final Project - River Valley Model
+© 2026 Eliora Hansonbrook
+"""
+
 from typing import Any
 
 from mesa import Model
 from mesa.space import HexMultiGrid
-#IMPORT RANDOM GENERATOR
+import random
 
 # A model of a river valley
 class RiverValley(Model):
@@ -20,6 +27,7 @@ class RiverValley(Model):
                 e4ReproductionFraction: float,
                 e5DeathThreshold: float,
                 e6ReproductionThreshold: float,
+                e7RiverFertilityValue: float,
                 c1InitialClimateLowerThreshold: float,
                 c2InitialClimateUpperThreshold: float,
                 c3DisruptionClimateLowerThreshold: float,
@@ -34,6 +42,7 @@ class RiverValley(Model):
         self.e4ReproductionFraction = e4ReproductionFraction
         self.e5DeathThreshold = e5DeathThreshold
         self.e6ReproductionThreshold = e6ReproductionThreshold
+        self.e7RiverFertilityValue = e7RiverFertilityValue
         self.c1InitialClimateLowerThreshold = c1InitialClimateLowerThreshold
         self.c2InitialClimateUpperThreshold = c2InitialClimateUpperThreshold
         self.c3DisruptionClimateLowerThreshold = c3DisruptionClimateLowerThreshold
@@ -44,7 +53,32 @@ class RiverValley(Model):
 
     # Set the fertility of each individual tile, starting with the river.
     def generateTileFertility(self, generator):
-        pass
+        random.seed(generator)
+        # Prepare to instantiate fertility values by creating
+        # a two dimensional array stacked with nil values
+        fertilityField = []
+        for _ in range(self.width):
+            column = []
+            for _ in range(self.height):
+                column.append(None)
+            fertilityField.append(column)
+        # Place the river
+        j = random.randint(0,self.height-1)
+        fertilityField[0][j] = self.e7RiverFertilityValue
+        for i in range(1, self.width):
+            if j > 0 and j < self.height - 1:
+                j = random.randint(j-1,j+1)
+            elif j > 0:
+                j = random.randint(j-1, j)
+            else:
+                j = random.randint(j, j+1)
+            fertilityField[i][j] = 1
+        # Update fertility around the river
+        # while None in fertilityField:
+        #     for array in fertilityField:
+        #         for value in array:
+        #             pass
+
 
     # Provide the initial assignments of agents to tiles
     def assignAgents(self, count):

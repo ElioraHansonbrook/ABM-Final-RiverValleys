@@ -1,3 +1,10 @@
+"""
+agents.py
+
+ABM Final Project - River Valley Model
+© 2026 Eliora Hansonbrook
+"""
+
 from mesa import Agent
 from model import RiverValley
 
