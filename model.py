@@ -9,6 +9,7 @@ from typing import Any
 
 from mesa import Model
 from mesa.space import HexMultiGrid
+from mesa.space import PropertyLayer
 import random
 
 # A model of a river valley
@@ -45,23 +46,18 @@ class RiverValley(Model):
         self.c3DisruptionClimateLowerThreshold = c3DisruptionClimateLowerThreshold
         self.c4DisruptionClimateUpperThreshold = c4DisruptionClimateUpperThreshold
         self.grid = HexMultiGrid(width = width, height = height, torus = False)
-        self.generateTileFertility(0) #FIX AND REPLACE WITH GENERATOR
+        self.generateTileFertility(seed)
         self.assignAgents(agentCount)
 
     # Set the fertility of each individual tile, starting with the river.
     def generateTileFertility(self, generator):
         random.seed(generator)
         # Prepare to instantiate fertility values by creating
-        # a two dimensional array stacked with nil values
-        fertilityField = []
-        for _ in range(self.width):
-            column = []
-            for _ in range(self.height):
-                column.append(None)
-            fertilityField.append(column)
-        # Place the river
+        # an empty property layer
+        fertilityField = PropertyLayer("Fertility", self.width, self.height, 0)
+        # TODO Place the river
         j = random.randint(0,self.height-1)
-        fertilityField[0][j] = self.e7RiverFertilityValue
+        fertilityField.data[0][j] = self.e7RiverFertilityValue
         for i in range(1, self.width):
             if j > 0 and j < self.height - 1:
                 j = random.randint(j-1,j+1)
@@ -69,12 +65,14 @@ class RiverValley(Model):
                 j = random.randint(j-1, j)
             else:
                 j = random.randint(j, j+1)
-            fertilityField[i][j] = 1
+            fertilityField.data[i][j] = 1
         # Update fertility around the river
         # while None in fertilityField:
         #     for array in fertilityField:
         #         for value in array:
         #             pass
+        self.grid.add_property_layer(property_layer=fertilityField)
+        
 
 
     # Provide the initial assignments of agents to tiles

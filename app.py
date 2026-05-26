@@ -7,7 +7,19 @@ ABM Final Project - River Valley Model
 
 from model import RiverValley
 from mesa.visualization import Slider, SolaraViz, make_space_component
+from mesa.visualization.components import PropertyLayerStyle
 
+# Visualize the model
+def propertyLayerVisualization(layer):
+    return PropertyLayerStyle(
+        color = "blue",
+        alpha=0.8,
+        colorbar=True,
+        vmin=0,
+        vmax=10
+    )
+
+# Visual parameters to control the model
 model_params = {
     "seed": Slider(
         label="Random Seed",
@@ -132,7 +144,7 @@ model = RiverValley()
 
 page = SolaraViz(
     model,
-    #components = [],
+    components = [make_space_component(propertylayer_portrayal=propertyLayerVisualization)],
     model_params=model_params,
     name="River Valley Model",
 )
