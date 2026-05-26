@@ -14,26 +14,23 @@ import random
 # A model of a river valley
 class RiverValley(Model):
     def __init__(self,
-                *args: Any,
-                seed: float | None = None,
-                rng: int | None = None,
-                scenario: Any | None = None,
-                height: int = 5,
-                width: int = 5,
-                agentCount: int = 25,
-                e1FarmedPortionPerPerson: float,
-                e2FarmingDecayRate: float,
-                e3InfrastructureDecayRate: float,
-                e4ReproductionFraction: float,
-                e5DeathThreshold: float,
-                e6ReproductionThreshold: float,
-                e7RiverFertilityValue: float,
-                c1InitialClimateLowerThreshold: float,
-                c2InitialClimateUpperThreshold: float,
-                c3DisruptionClimateLowerThreshold: float,
-                c4DisruptionClimateUpperThreshold: float,
+                seed = None,
+                height = 5,
+                width = 5,
+                agentCount = 25,
+                e1FarmedPortionPerPerson = 50,
+                e2FarmingDecayRate = 10,
+                e3InfrastructureDecayRate = 10,
+                e4ReproductionFraction = 10,
+                e5DeathThreshold = 5,
+                e6ReproductionThreshold = 15,
+                e7RiverFertilityValue = 1,
+                c1InitialClimateLowerThreshold = 30,
+                c2InitialClimateUpperThreshold = 34,
+                c3DisruptionClimateLowerThreshold = 14,
+                c4DisruptionClimateUpperThreshold = 24,
                 ) -> None:
-        super().__init__(*args, seed=seed, rng=rng, scenario=scenario,)
+        super().__init__(seed=seed)
         self.height = height
         self.width = width
         self.e1FarmedPortionPerPerson = e1FarmedPortionPerPerson

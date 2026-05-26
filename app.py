@@ -126,5 +126,13 @@ model_params = {
         max = 50,
         step = 1,
     ),
-
 }
+
+model = RiverValley()
+
+page = SolaraViz(
+    model,
+    #components = [],
+    model_params=model_params,
+    name="River Valley Model",
+)
