@@ -11,13 +11,30 @@ from mesa.visualization.components import PropertyLayerStyle
 
 # Visualize the model
 def propertyLayerVisualization(layer):
-    return PropertyLayerStyle(
-        color = "blue",
-        alpha=0.8,
-        colorbar=True,
-        vmin=0,
-        vmax=10
-    )
+    if layer.name == "Fertility":
+        return PropertyLayerStyle(
+            color = "blue",
+            alpha=0.8,
+            colorbar=True,
+            vmin=0,
+            vmax=10
+        )
+    if layer.name == "HGYield":
+        return PropertyLayerStyle(
+            color = "red",
+            alpha=0.8,
+            colorbar=True,
+            vmin=0,
+            vmax=50
+        )
+    if layer.name == "AgYield":
+        return PropertyLayerStyle(
+            color = "green",
+            alpha=0.8,
+            colorbar=True,
+            vmin=0,
+            vmax=50
+        )
 
 # Visual parameters to control the model
 model_params = {
@@ -52,7 +69,7 @@ model_params = {
     ),
 
     "e1FarmedPortionPerPerson": Slider(
-        label="Farmed Thousandth of a Tile Per Person (e1)",
+        label="Farmed Portion per Person (e1)",
         value = 50,
         min = 1,
         max = 1000,
@@ -60,7 +77,7 @@ model_params = {
     ),
 
     "e2FarmingDecayRate": Slider(
-        label="Farming Decay Rate Percentage (e2)",
+        label="Farming Decay Rate (e2)",
         value = 10,
         min = 1,
         max = 100,
@@ -68,7 +85,7 @@ model_params = {
     ),
 
     "e3InfrastructureDecayRate": Slider(
-        label="Infrastructure Decay Rate Percentage (e3)",
+        label="Infrastructure Decay Rate (e3)",
         value = 10,
         min = 0,
         max = 100,
@@ -76,7 +93,7 @@ model_params = {
     ),
 
     "e4ReproductionFraction": Slider(
-        label="Reproduction Success Rate Percentage (e4)",
+        label="Reproduction Success Rate (e4)",
         value = 10,
         min = 0,
         max = 100,

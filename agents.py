@@ -46,10 +46,11 @@ class Person(CellAgent):
     # Confirm the agent doesn't starve to death; Attempt reproduction, if requirements are met
     def reproduction(self):
         totalFood = self.food[0] + self.food[1]
+        print(totalFood)
         if totalFood < self.e5DeathThreshold:
             self.remove()
         if totalFood > self.e6ReproductionThreshold:
-            if self.random.randint(0,self.e4ReproductionFraction) == 0:
+            if self.age >= 18 and self.age <= 45 and self.random.randint(0,self.e4ReproductionFraction) == 0:
                 Person.create_agents(
                     self.model,
                     1,
@@ -64,4 +65,12 @@ class Person(CellAgent):
 
     # If another adjacent tile would have provided greater utility this round, AND this agent is suffering, move to the best tile.
     def move(self):
-        adjacentCells = self.cell.get_neighborhood(radius=1, include_center=False)
+        if self.food[0] + self.food[1] > self.e5DeathThreshold and self.food[0] + self.food[1] < self.e6ReproductionThreshold:
+            adjacentCells = self.cell.get_neighborhood(radius=1, include_center=True)
+            cellPreference = self.cell
+            score = self.food[0] + self.food[1]
+            for cell in adjacentCells:
+                if self.model.grid._mesa_property_layers["IndividualAgYield"].data[cell.coordinate[0]][cell.coordinate[1]] * self.preference[1] + self.model.grid._mesa_property_layers["IndividualHGYield"].data[cell.coordinate[0]][cell.coordinate[1]] * self.preference[0] > score:
+                    score = self.model.grid._mesa_property_layers["IndividualAgYield"].data[cell.coordinate[0]][cell.coordinate[1]] * self.preference[1] + self.model.grid._mesa_property_layers["IndividualHGYield"].data[cell.coordinate[0]][cell.coordinate[1]] * self.preference[0]
+                    cellPreference = cell
+            self.move_to(cellPreference)

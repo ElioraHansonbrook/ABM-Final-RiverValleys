@@ -5,7 +5,7 @@ ABM Final Project - River Valley Model
 © 2026 Eliora Hansonbrook
 """
 
-from typing import Any
+from typing import Any, cast
 from agents import Person
 from mesa import Model
 from mesa.discrete_space import HexGrid
@@ -49,6 +49,7 @@ class RiverValley(Model):
         self.c4DisruptionClimateUpperThreshold = c4DisruptionClimateUpperThreshold
         self.grid = HexGrid(dimensions = [height,width], torus = False, random=self.generator)
         self.generateTileFertility()
+        self.finishTileGeneration()
         self.assignAgents(agentCount)
 
     # Set the fertility of each individual tile, starting with the river.
@@ -96,6 +97,17 @@ class RiverValley(Model):
             return newArray
         return self.diffuseValues(newArray)
 
+    # Add other values to each tile.
+    def finishTileGeneration(self):
+        self.grid.create_property_layer("TotalYield", 0)
+        self.grid.create_property_layer("PreviousYield", 0)
+        self.grid.create_property_layer("HGYield", 0)
+        self.grid.create_property_layer("AgYield", 0)
+        self.grid.create_property_layer("FarmingProportion", 0)
+        self.grid.create_property_layer("Infrastructure", 0)
+        self.grid.create_property_layer("FarmingUtilized", 0)
+        self.grid.create_property_layer("IndividualAgYield", 0)
+        self.grid.create_property_layer("IndividualHGYield", 0)
 
     # Provide the initial assignments of agents to tiles
     def assignAgents(self, count):
@@ -105,6 +117,8 @@ class RiverValley(Model):
             count,
             self.random.choices(self.grid.all_cells.cells, k=count),
             lifeExpectancy = self.rng.integers(45,76, count),
+            # These three values need to be passed down to agents because there's an issue with
+            # circular imports not being permitted in Python.
             e4ReproductionFraction = self.e4ReproductionFraction,
             e5DeathThreshold = self.e5DeathThreshold,
             e6ReproductionThreshold = self.e6ReproductionThreshold,
@@ -112,15 +126,56 @@ class RiverValley(Model):
 
     # Set the total possible yields for a tile in the given round
     def calculateTileYields(self):
-        pass
+        # Temporarily providing totally static climate
+        currentClimate = 30
+        fertility = self.grid._mesa_property_layers["Fertility"].data
+        self.grid._mesa_property_layers["TotalYield"].data = fertility * currentClimate
+        yt = self.grid._mesa_property_layers["TotalYield"].data
+        i = self.grid._mesa_property_layers["Infrastructure"].data
+        pf = self.grid._mesa_property_layers["FarmingProportion"].data
+        pyt = self.grid._mesa_property_layers["PreviousYield"].data
+        hgy = yt * (1-pf)**2
+        agy = yt * pf + i - (yt - pyt)**2
+        for i in range(0, len(hgy)):
+            for j in range(0, len(hgy[i])):
+                hgy[i,j] = max (hgy[i,j], 0)
+                agy[i,j] = max (agy[i,j], 0)
+        self.grid._mesa_property_layers["HGYield"].data = hgy
+        self.grid._mesa_property_layers["AgYield"].data = agy
 
     # Assign food to agents on each tile, based on agent preferences and food availability
     def feedAgents(self):
-        pass
+        uf = self.grid._mesa_property_layers["FarmingUtilized"].data
+        for cell in self.grid._celllist:
+            totalPreference = (0.0,0.0)
+            for agent in cell.agents:
+                cast(Person, agent)
+                totalPreference = (totalPreference[0] + agent.preference[0], totalPreference[1] + agent.preference[1])
+            # Update farming utilization for this tile
+            if totalPreference[0] + totalPreference[1] > 0: #Just to prevent Db0 Error
+                uf[cell.coordinate[0]][[cell.coordinate[1]]] = totalPreference[1] / (totalPreference[0] + totalPreference[1])
+            for agent in cell.agents:
+                cast(Person, agent)
+                agent.food = (agent.preference[0]/totalPreference[0]*self.grid._mesa_property_layers["HGYield"].data[cell.coordinate[0]][cell.coordinate[1]], agent.preference[1]/totalPreference[1]*self.grid._mesa_property_layers["AgYield"].data[cell.coordinate[0]][cell.coordinate[1]])
+            self.grid._mesa_property_layers["FarmingProportion"].data = uf
+            if totalPreference[0] > 0: #Just to prevent Db0 Error
+                self.grid._mesa_property_layers["IndividualAgYield"].data = 1/totalPreference[0]*self.grid._mesa_property_layers["AgYield"].data[cell.coordinate[0]][cell.coordinate[1]]
+            if totalPreference[1] > 0: #Just to prevent Db0 Error
+                self.grid._mesa_property_layers["IndividualHGYield"].data = 1/totalPreference[1]*self.grid._mesa_property_layers["HGYield"].data[cell.coordinate[0]][cell.coordinate[1]]
 
     # Update the infrastructure and farmed proportions on each tile.
     def updateTiles(self):
-        pass
+        uf = self.grid._mesa_property_layers["FarmingUtilized"].data
+        pf = self.grid._mesa_property_layers["FarmingProportion"].data
+        i = self.grid._mesa_property_layers["Infrastructure"].data
+        self.grid._mesa_property_layers["Infrastructure"].data = i/self.e3InfrastructureDecayRate + pf - abs(uf-pf)
+        for cell in self.grid._celllist:
+            if uf[cell.coordinate[0]][cell.coordinate[1]] > pf[cell.coordinate[0]][cell.coordinate[1]]:
+                pf[cell.coordinate[0]][cell.coordinate[1]] = uf[cell.coordinate[0]][cell.coordinate[1]]
+            else:
+                pf[cell.coordinate[0]][cell.coordinate[1]] = (pf[cell.coordinate[0]][cell.coordinate[1]] - uf[cell.coordinate[0]][cell.coordinate[1]]) / self.e2FarmingDecayRate
+        self.grid._mesa_property_layers["FarmingUtilized"].data = uf
+        self.grid._mesa_property_layers["FarmingProportion"].data = pf
 
     # A single step of the model
     def step(self):
