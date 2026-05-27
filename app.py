@@ -101,7 +101,7 @@ model_params = {
 
     "e7RiverFertilityValue": Slider(
         label="River Fertility Value (e7)",
-        value = 1,
+        value = 7,
         min = 1,
         max = 10,
         step = 1,
