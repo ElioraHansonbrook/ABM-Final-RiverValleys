@@ -8,7 +8,7 @@ ABM Final Project - River Valley Model
 from typing import Any
 
 from mesa import Model
-from mesa.space import HexMultiGrid
+from mesa.discrete_space import HexGrid
 from mesa.space import PropertyLayer
 import random
 
@@ -32,6 +32,8 @@ class RiverValley(Model):
                 c4DisruptionClimateUpperThreshold = 24,
                 ) -> None:
         super().__init__(seed=seed)
+        self.generator = random.Random()
+        self.generator.seed(seed)
         self.height = height
         self.width = width
         self.e1FarmedPortionPerPerson = e1FarmedPortionPerPerson
@@ -45,19 +47,19 @@ class RiverValley(Model):
         self.c2InitialClimateUpperThreshold = c2InitialClimateUpperThreshold
         self.c3DisruptionClimateLowerThreshold = c3DisruptionClimateLowerThreshold
         self.c4DisruptionClimateUpperThreshold = c4DisruptionClimateUpperThreshold
-        self.grid = HexMultiGrid(width = width, height = height, torus = False)
-        self.generateTileFertility(seed)
+        self.grid = HexGrid(dimensions = [height,width], torus = False, random=self.generator)
+        self.generateTileFertility()
         self.assignAgents(agentCount)
 
     # Set the fertility of each individual tile, starting with the river.
-    def generateTileFertility(self, generator):
-        random.seed(generator)
+    def generateTileFertility(self):
         # Prepare to instantiate fertility values by creating
         # an empty property layer
-        fertilityField = PropertyLayer("Fertility", self.width, self.height, 0)
+        fertilityField = self.grid.create_property_layer("Fertility", 0)
+        #fertilityField = PropertyLayer("Fertility", self.width, self.height, 0)
         # TODO Place the river
         j = random.randint(0,self.height-1)
-        fertilityField.data[0][j] = self.e7RiverFertilityValue
+        fertilityField.data[j][0] = self.e7RiverFertilityValue
         for i in range(1, self.width):
             if j > 0 and j < self.height - 1:
                 j = random.randint(j-1,j+1)
@@ -65,13 +67,13 @@ class RiverValley(Model):
                 j = random.randint(j-1, j)
             else:
                 j = random.randint(j, j+1)
-            fertilityField.data[i][j] = 1
+            fertilityField.data[j][i] = self.e7RiverFertilityValue
         # Update fertility around the river
         # while None in fertilityField:
         #     for array in fertilityField:
         #         for value in array:
         #             pass
-        self.grid.add_property_layer(property_layer=fertilityField)
+        #self.grid.add_property_layer(layer=fertilityField)
         
 
 

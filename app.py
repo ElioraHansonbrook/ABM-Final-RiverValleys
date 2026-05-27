@@ -36,7 +36,7 @@ model_params = {
         step = 1,
     ),
     "height": Slider(
-        label="Width",
+        label="Height",
         value = 10,
         min = 5,
         max = 50,
