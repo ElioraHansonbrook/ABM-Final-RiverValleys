@@ -5,12 +5,13 @@ ABM Final Project - River Valley Model
 © 2026 Eliora Hansonbrook
 """
 
-from mesa import Agent
-from model import RiverValley
+from mesa.discrete_space import CellAgent, Cell
+from mesa import Model
 
-class Person(Agent):
+class Person(CellAgent):
     def __init__(self,
-                model: RiverValley,
+                model: Model,
+                cell,
                 preference = (0.999, 0.001), # Food acquisition preference
                 age = 0,
                 lifeExpectancy = 80,
@@ -20,11 +21,14 @@ class Person(Agent):
         self.preference = preference
         self.age = age
         self.lifeExpectancy = lifeExpectancy
+        self.cell = cell
         self.food = (0,0)
 
     # Update the age of the agent, and kill if needed
     def ageUpdates(self):
-        pass
+        self.age += 1
+        if self.age >= self.lifeExpectancy:
+            self.remove()
     
     # Update the preference of the model as the first step in a round.
     def updatePreference(self):

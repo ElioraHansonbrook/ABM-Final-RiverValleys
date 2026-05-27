@@ -6,7 +6,7 @@ ABM Final Project - River Valley Model
 """
 
 from typing import Any
-
+from agents import Person
 from mesa import Model
 from mesa.discrete_space import HexGrid
 from mesa.space import PropertyLayer
@@ -68,6 +68,7 @@ class RiverValley(Model):
             else:
                 j = self.random.randint(j, j+1)
             fertilityField.data[j][i] = self.e7RiverFertilityValue
+        # Diffuse fertility across the grid
         fertilityField.data = self.diffuseValues(fertilityField.data)
     
     # Diffuse fertility from the river valley using a recursive methadology
@@ -98,7 +99,13 @@ class RiverValley(Model):
 
     # Provide the initial assignments of agents to tiles
     def assignAgents(self, count):
-        pass
+        # Randomly assign agents to tiles
+        Person.create_agents(
+            self,
+            count,
+            self.random.choices(self.grid.all_cells.cells, k=count),
+            lifeExpectancy = self.rng.integers(45,76, count)
+        )
 
     # Set the total possible yields for a tile in the given round
     def calculateTileYields(self):
@@ -114,6 +121,7 @@ class RiverValley(Model):
 
     # A single step of the model
     def step(self):
+        self.agents.do("ageUpdates")
         self.agents.do("updatePreference")
         self.calculateTileYields()
         self.feedAgents()
