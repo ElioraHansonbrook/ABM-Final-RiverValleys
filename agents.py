@@ -6,15 +6,17 @@ ABM Final Project - River Valley Model
 """
 
 from mesa.discrete_space import CellAgent, Cell
-from mesa import Model
 
 class Person(CellAgent):
     def __init__(self,
-                model: Model,
+                model: model,
                 cell,
                 preference = (0.999, 0.001), # Food acquisition preference
                 age = 0,
                 lifeExpectancy = 80,
+                e4ReproductionFraction = 10,
+                e5DeathThreshold = 5,
+                e6ReproductionThreshold = 15,
                 *args,
                 **kwargs) -> None:
         super().__init__(model, *args, **kwargs)
@@ -22,6 +24,9 @@ class Person(CellAgent):
         self.age = age
         self.lifeExpectancy = lifeExpectancy
         self.cell = cell
+        self.e4ReproductionFraction = e4ReproductionFraction
+        self.e5DeathThreshold = e5DeathThreshold
+        self.e6ReproductionThreshold = e6ReproductionThreshold
         self.food = (0,0)
 
     # Update the age of the agent, and kill if needed
@@ -32,12 +37,31 @@ class Person(CellAgent):
     
     # Update the preference of the model as the first step in a round.
     def updatePreference(self):
-        pass
+        # Only try to update when some food was gathered to prevent divide by zero errors
+        if self.food[0] + self.food[1] != 0:
+            updatedPreference = ((self.preference[0] + (self.food[0]/(self.food[0] + self.food[1])))/2,
+                             (self.preference[1] + (self.food[1]/(self.food[0] + self.food[1])))/2)
+            self.preference = updatedPreference
     
-    # Attempt reproduction, if requirements are met
+    # Confirm the agent doesn't starve to death; Attempt reproduction, if requirements are met
     def reproduction(self):
-        pass
+        totalFood = self.food[0] + self.food[1]
+        if totalFood < self.e5DeathThreshold:
+            self.remove()
+        if totalFood > self.e6ReproductionThreshold:
+            if self.random.randint(0,self.e4ReproductionFraction) == 0:
+                Person.create_agents(
+                    self.model,
+                    1,
+                    cell = self.cell,
+                    preference = self.preference,
+                    age = 0,
+                    lifeExpectancy = self.random.randint(45,76),
+                    e4ReproductionFraction = self.e4ReproductionFraction,
+                    e5DeathThreshold = self.e5DeathThreshold,
+                    e6ReproductionThreshold = self.e6ReproductionThreshold,
+                )
 
     # If another adjacent tile would have provided greater utility this round, AND this agent is suffering, move to the best tile.
     def move(self):
-        pass
+        adjacentCells = self.cell.get_neighborhood(radius=1, include_center=False)

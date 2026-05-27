@@ -104,7 +104,10 @@ class RiverValley(Model):
             self,
             count,
             self.random.choices(self.grid.all_cells.cells, k=count),
-            lifeExpectancy = self.rng.integers(45,76, count)
+            lifeExpectancy = self.rng.integers(45,76, count),
+            e4ReproductionFraction = self.e4ReproductionFraction,
+            e5DeathThreshold = self.e5DeathThreshold,
+            e6ReproductionThreshold = self.e6ReproductionThreshold,
         )
 
     # Set the total possible yields for a tile in the given round
