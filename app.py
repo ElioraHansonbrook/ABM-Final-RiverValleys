@@ -19,7 +19,7 @@ def propertyLayerVisualization(layer):
             vmin=0,
             vmax=10
         )
-    if layer.name == "HGYield":
+    if layer.name == "IndividualHGYield":
         return PropertyLayerStyle(
             color = "red",
             alpha=0.8,
@@ -27,7 +27,7 @@ def propertyLayerVisualization(layer):
             vmin=0,
             vmax=50
         )
-    if layer.name == "AgYield":
+    if layer.name == "HGYield":
         return PropertyLayerStyle(
             color = "green",
             alpha=0.8,
