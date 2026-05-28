@@ -42,6 +42,10 @@ class Person(CellAgent):
             updatedPreference = ((self.preference[0] + (self.food[0]/(self.food[0] + self.food[1])))/2,
                              (self.preference[1] + (self.food[1]/(self.food[0] + self.food[1])))/2)
             self.preference = updatedPreference
+        if self.preference[0] > 0.999:
+            self.preference = (0.999, 0.001)
+        elif self.preference[1] > 0.999:
+            self.preference = (0.001, 0.999)
     
     # Confirm the agent doesn't starve to death; Attempt reproduction, if requirements are met
     def reproduction(self):
@@ -65,7 +69,7 @@ class Person(CellAgent):
 
     # If another adjacent tile would have provided greater utility this round, AND this agent is suffering, move to the best tile.
     def move(self):
-        if (self.food[0] + self.food[1] > self.e5DeathThreshold and self.food[0] + self.food[1] < self.e6ReproductionThreshold) and self.random.randint(0,2) == 0:
+        if ((self.food[0] + self.food[1] > self.e5DeathThreshold and self.food[0] + self.food[1] < self.e6ReproductionThreshold) or self.preference[0] >= 0.5) and self.random.randint(0,2) == 0:
             adjacentCells = self.cell.get_neighborhood(radius=1, include_center=True)
             cellPreference = self.cell
             score = self.food[0] + self.food[1]
@@ -78,7 +82,3 @@ class Person(CellAgent):
                     score = newScore
                     cellPreference = cell
             self.move_to(cellPreference)
-        # if self.age == 18 and self.random.randint(0,3) == 0:
-        #     adjacentCells = self.cell.get_neighborhood(radius=1, include_center=True)
-        #     choice = self.random.randint(0, len(adjacentCells))
-        #     self.move_to(adjacentCells[choice])

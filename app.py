@@ -10,7 +10,46 @@ from mesa.visualization import Slider, SolaraViz, make_space_component
 from mesa.visualization.components import PropertyLayerStyle, AgentPortrayalStyle
 
 # Visualize the model
-def propertyLayerVisualization(layer):
+def propertyLayerVisualization_yields(layer):
+    if layer.name == "IndividualHGYield":
+        return PropertyLayerStyle(
+            color = "red",
+            alpha=0.8,
+            colorbar=True,
+            vmin=0,
+            vmax=50
+        )
+    
+    if layer.name == "IndividualAgYield":
+        return PropertyLayerStyle(
+            color = "green",
+            alpha=0.8,
+            colorbar=True,
+            vmin=0,
+            vmax=50
+        )
+    
+def propertyLayerVisualization_methadology(layer):
+    if layer.name == "FarmingProportion":
+        return PropertyLayerStyle(
+            color = "green",
+            alpha=0.8,
+            colorbar=True,
+            vmin=0,
+            vmax=1
+        )
+
+def propertyLayerVisualization_infrastructure(layer):
+    if layer.name == "Infrastructure":
+        return PropertyLayerStyle(
+            color = "gray",
+            alpha=0.8,
+            colorbar=True,
+            vmin=0,
+            vmax=1
+        )
+
+def propertyLayerVisualization_basic(layer):
     if layer.name == "Fertility":
         return PropertyLayerStyle(
             color = "blue",
@@ -19,14 +58,6 @@ def propertyLayerVisualization(layer):
             vmin=0,
             vmax=10
         )
-    # if layer.name == "IndividualHGYield":
-    #     return PropertyLayerStyle(
-    #         color = "red",
-    #         alpha=0.8,
-    #         colorbar=True,
-    #         vmin=0,
-    #         vmax=50
-    #     )
 
     if layer.name == "Population":
         return PropertyLayerStyle(
@@ -36,15 +67,6 @@ def propertyLayerVisualization(layer):
             vmin=0,
             vmax=5,
         )
-    
-    # if layer.name == "HGYield":
-    #     return PropertyLayerStyle(
-    #         color = "green",
-    #         alpha=0.8,
-    #         colorbar=True,
-    #         vmin=0,
-    #         vmax=50
-    #     )
 
 def agent_portrayal(agent):
     return AgentPortrayalStyle(
@@ -95,7 +117,7 @@ model_params = {
 
     "e2FarmingDecayRate": Slider(
         label="Farming Decay Rate (e2)",
-        value = 10,
+        value = 120,
         min = 1,
         max = 100,
         step = 1,
@@ -103,8 +125,8 @@ model_params = {
 
     "e3InfrastructureDecayRate": Slider(
         label="Infrastructure Decay Rate (e3)",
-        value = 10,
-        min = 0,
+        value = 2,
+        min = 1,
         max = 100,
         step = 1,
     ),
@@ -178,7 +200,10 @@ model = RiverValley()
 
 page = SolaraViz(
     model,
-    components = [make_space_component(propertylayer_portrayal=propertyLayerVisualization, agent_portrayal=agent_portrayal)],
+    components = [make_space_component(propertylayer_portrayal=propertyLayerVisualization_basic, agent_portrayal=agent_portrayal),
+                  make_space_component(propertylayer_portrayal=propertyLayerVisualization_yields, agent_portrayal=agent_portrayal),
+                  make_space_component(propertylayer_portrayal=propertyLayerVisualization_methadology, agent_portrayal=agent_portrayal),
+                  make_space_component(propertylayer_portrayal=propertyLayerVisualization_infrastructure, agent_portrayal=agent_portrayal)],
     model_params=model_params,
     name="River Valley Model",
 )
