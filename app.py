@@ -7,7 +7,7 @@ ABM Final Project - River Valley Model
 
 from model import RiverValley
 from mesa.visualization import Slider, SolaraViz, make_space_component
-from mesa.visualization.components import PropertyLayerStyle
+from mesa.visualization.components import PropertyLayerStyle, AgentPortrayalStyle
 
 # Visualize the model
 def propertyLayerVisualization(layer):
@@ -19,22 +19,39 @@ def propertyLayerVisualization(layer):
             vmin=0,
             vmax=10
         )
-    if layer.name == "IndividualHGYield":
+    # if layer.name == "IndividualHGYield":
+    #     return PropertyLayerStyle(
+    #         color = "red",
+    #         alpha=0.8,
+    #         colorbar=True,
+    #         vmin=0,
+    #         vmax=50
+    #     )
+
+    if layer.name == "Population":
         return PropertyLayerStyle(
-            color = "red",
+            color = "yellow",
             alpha=0.8,
             colorbar=True,
             vmin=0,
-            vmax=50
+            vmax=5,
         )
-    if layer.name == "HGYield":
-        return PropertyLayerStyle(
-            color = "green",
-            alpha=0.8,
-            colorbar=True,
-            vmin=0,
-            vmax=50
-        )
+    
+    # if layer.name == "HGYield":
+    #     return PropertyLayerStyle(
+    #         color = "green",
+    #         alpha=0.8,
+    #         colorbar=True,
+    #         vmin=0,
+    #         vmax=50
+    #     )
+
+def agent_portrayal(agent):
+    return AgentPortrayalStyle(
+        x = agent.cell.coordinate[1],
+        y = agent.cell.coordinate[0],
+        color = "red",
+    )
 
 # Visual parameters to control the model
 model_params = {
@@ -161,7 +178,7 @@ model = RiverValley()
 
 page = SolaraViz(
     model,
-    components = [make_space_component(propertylayer_portrayal=propertyLayerVisualization)],
+    components = [make_space_component(propertylayer_portrayal=propertyLayerVisualization, agent_portrayal=agent_portrayal)],
     model_params=model_params,
     name="River Valley Model",
 )

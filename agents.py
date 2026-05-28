@@ -11,7 +11,7 @@ class Person(CellAgent):
     def __init__(self,
                 model: model,
                 cell,
-                preference = (0.1, 0.9), # Food acquisition preference
+                preference = (0.999, 0.001), # Food acquisition preference
                 age = 0,
                 lifeExpectancy = 80,
                 e4ReproductionFraction = 10,
@@ -65,7 +65,7 @@ class Person(CellAgent):
 
     # If another adjacent tile would have provided greater utility this round, AND this agent is suffering, move to the best tile.
     def move(self):
-        if (self.food[0] + self.food[1] > self.e5DeathThreshold and self.food[0] + self.food[1] < self.e6ReproductionThreshold):
+        if (self.food[0] + self.food[1] > self.e5DeathThreshold and self.food[0] + self.food[1] < self.e6ReproductionThreshold) and self.random.randint(0,2) == 0:
             adjacentCells = self.cell.get_neighborhood(radius=1, include_center=True)
             cellPreference = self.cell
             score = self.food[0] + self.food[1]
@@ -73,12 +73,12 @@ class Person(CellAgent):
             # print(self.model.grid._mesa_property_layers["IndividualHGYield"].data)
             for cell in adjacentCells:
                 newScore = cell.IndividualAgYield * self.preference[1] + cell.IndividualHGYield * self.preference[0]
-                print(newScore)
+                #print(newScore)
                 if newScore > score:
                     score = newScore
                     cellPreference = cell
             self.move_to(cellPreference)
-        if self.age == 18 and self.random.randint(0,3) == 0:
-            adjacentCells = self.cell.get_neighborhood(radius=1, include_center=True)
-            choice = self.random.randint(0, len(adjacentCells))
-            self.move_to(adjacentCells[choice])
+        # if self.age == 18 and self.random.randint(0,3) == 0:
+        #     adjacentCells = self.cell.get_neighborhood(radius=1, include_center=True)
+        #     choice = self.random.randint(0, len(adjacentCells))
+        #     self.move_to(adjacentCells[choice])
