@@ -107,7 +107,7 @@ class RiverValley(Model):
             return newArray
         return self.diffuseValues(newArray)
 
-    # Add other values to each tile.
+    # Add all other values to each tile.
     def finishTileGeneration(self):
         self.grid.create_property_layer("TotalYield", 0)
         self.grid.create_property_layer("PreviousYield", 0)
@@ -138,11 +138,12 @@ class RiverValley(Model):
 
     # Set the total possible yields for a tile in the given round
     def calculateTileYields(self):
-        # Temporarily providing totally static climate
+        # Calculate overall climate value
         if self.turn < self.c5DisruptionStartTurn or self.turn >= self.c6DisruptionEndTurn:
             climate = self.random.randint(self.c1InitialClimateLowerThreshold, self.c2InitialClimateUpperThreshold + 1)
         else:
             climate = self.random.randint(self.c3DisruptionClimateLowerThreshold, self.c4DisruptionClimateUpperThreshold + 1)
+        # Apply the climate to each cell to calculate the cells' yields for the upcoming turn
         for cell in self.grid._celllist:
             cell.TotalYield = cell.Fertility * climate + climate
             cell.HGYield = max(cell.TotalYield * (1-cell.FarmingProportion), 0)
@@ -152,20 +153,26 @@ class RiverValley(Model):
 
     # Assign food to agents on each tile, based on agent preferences and food availability
     def feedAgents(self):
-        #uf = self.grid._mesa_property_layers["FarmingUtilized"].data
+        # Feed the agents in each cell
         for cell in self.grid._celllist:
+            # Accumulator pattern to get the total preference of all agents on a tile
             totalPreference = (0.0,0.0)
             for agent in cell.agents:
                 cast(Person, agent)
                 totalPreference = (totalPreference[0] + agent.preference[0], totalPreference[1] + agent.preference[1])
-            # Update farming utilization for this tile
+            # Update farming utilization for this tile; this is needed to calculate the farming proportion of the tile later on
             if totalPreference[0] + totalPreference[1] > 0: #Just to prevent Db0 Error
+                # Min *probably* doesn't do anything here, but I was getting a weird bug earlier so I added it just to be safe
                 cell.FarmingUtilized = min(totalPreference[1] * 1/self.e1FarmedPortionPerPerson, 1.0)
             else:
                 cell.FarmingUtilized = 0
+            # Now that that's all done, the agents get fed:
             for agent in cell.agents:
                 cast(Person, agent)
+                # Feed one agent
                 agent.food = (agent.preference[0]/totalPreference[0]*cell.HGYield, agent.preference[1]/totalPreference[1]*cell.AgYield)
+            # Calculate the average yields per agent for the tile; this is just to help agents know where to move later on, but
+            # it also makes a nice visualization as an added bonus.
             if totalPreference[0] > 0: #Just to prevent Db0 Error
                 cell.IndividualHGYield = 1/totalPreference[0]*cell.HGYield
             else:
@@ -178,8 +185,9 @@ class RiverValley(Model):
     # Update the infrastructure and farmed proportions on each tile.
     def updateTiles(self):
         for cell in self.grid._celllist:
-            #cell.Infrastructure = abs(cell.Infrastructure/self.e3InfrastructureDecayRate) + cell.FarmingProportion * cell.Population + 0.01 * cell.Population
+            # Update infrastructure as specified in model
             cell.Infrastructure = abs(cell.Infrastructure/self.e3InfrastructureDecayRate) + math.log(1 + cell.FarmingProportion * cell.Population + 0.02 * cell.Population, self.e2FarmingDecayRate)
+            # Update how much of the cell is currently converted to farmland; this impacts future farming and hunter-gatherer yields.
             if cell.FarmingUtilized > cell.FarmingProportion:
                 cell.FarmingProportion = cell.FarmingUtilized
             else:
