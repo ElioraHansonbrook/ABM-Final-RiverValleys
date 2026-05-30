@@ -11,7 +11,7 @@ class Person(CellAgent):
     def __init__(self,
                 model: model,
                 cell,
-                preference = (0.999, 0.001), # Food acquisition preference
+                preference = (0.99, 0.01), # Food acquisition preference
                 age = 0,
                 lifeExpectancy = 80,
                 e4ReproductionFraction = 10,
@@ -42,10 +42,10 @@ class Person(CellAgent):
             updatedPreference = ((self.preference[0] + (self.food[0]/(self.food[0] + self.food[1])))/2,
                              (self.preference[1] + (self.food[1]/(self.food[0] + self.food[1])))/2)
             self.preference = updatedPreference
-        if self.preference[0] > 0.999:
-            self.preference = (0.999, 0.001)
-        elif self.preference[1] > 0.999:
-            self.preference = (0.001, 0.999)
+        if self.preference[0] > 0.99:
+            self.preference = (0.99, 0.01)
+        elif self.preference[1] > 0.99:
+            self.preference = (0.01, 0.99)
     
     # Confirm the agent doesn't starve to death; Attempt reproduction, if requirements are met
     def reproduction(self):

@@ -6,18 +6,17 @@ ABM Final Project - River Valley Model
 """
 
 from model import RiverValley
-from mesa.visualization import Slider, SolaraViz, make_space_component
+from mesa.visualization import Slider, SolaraViz, make_space_component, make_plot_component
 from mesa.visualization.components import PropertyLayerStyle, AgentPortrayalStyle
 
 # Visualize the model
 def propertyLayerVisualization_yields(layer):
     if layer.name == "IndividualHGYield":
         return PropertyLayerStyle(
-            color = "red",
+            color = "purple",
             alpha=0.8,
             colorbar=True,
             vmin=0,
-            vmax=50
         )
     
     if layer.name == "IndividualAgYield":
@@ -26,7 +25,6 @@ def propertyLayerVisualization_yields(layer):
             alpha=0.8,
             colorbar=True,
             vmin=0,
-            vmax=50
         )
     
 def propertyLayerVisualization_methadology(layer):
@@ -45,8 +43,6 @@ def propertyLayerVisualization_infrastructure(layer):
             color = "gray",
             alpha=0.8,
             colorbar=True,
-            vmin=0,
-            vmax=1
         )
 
 def propertyLayerVisualization_basic(layer):
@@ -55,8 +51,6 @@ def propertyLayerVisualization_basic(layer):
             color = "blue",
             alpha=0.8,
             colorbar=True,
-            vmin=0,
-            vmax=10
         )
 
     if layer.name == "Population":
@@ -64,8 +58,6 @@ def propertyLayerVisualization_basic(layer):
             color = "yellow",
             alpha=0.8,
             colorbar=True,
-            vmin=0,
-            vmax=5,
         )
 
 def agent_portrayal(agent):
@@ -109,9 +101,9 @@ model_params = {
 
     "e1FarmedPortionPerPerson": Slider(
         label="Farmed Portion per Person (e1)",
-        value = 50,
+        value = 24,
         min = 1,
-        max = 1000,
+        max = 100,
         step = 1,
     ),
 
@@ -141,7 +133,7 @@ model_params = {
 
     "e5DeathThreshold": Slider(
         label="Starvation Threshold (e5)",
-        value = 5,
+        value = 1,
         min = 1,
         max = 100,
         step = 1,
@@ -149,7 +141,7 @@ model_params = {
 
     "e6ReproductionThreshold": Slider(
         label="Reproduction Threshold (e6)",
-        value = 15,
+        value = 4,
         min = 1,
         max = 100,
         step = 1,
@@ -164,23 +156,23 @@ model_params = {
     ),
 
     "c1InitialClimateLowerThreshold": Slider(
-        label="Initial Climate Lower Threshold (c1)",
-        value = 30,
+        label="Initial Climate Lower Limit (c1)",
+        value = 48,
         min = 5,
         max = 50,
         step = 1,
     ),
 
     "c2InitialClimateUpperThreshold": Slider(
-        label="Initial Climate Upper Threshold (c2)",
-        value = 34,
+        label="Initial Climate Upper Limit (c2)",
+        value = 50,
         min = 5,
         max = 50,
         step = 1,
     ),
 
     "c3DisruptionClimateLowerThreshold": Slider(
-        label="Disruption Climate Lower Threshold (c3)",
+        label="Disruption Climate Lower Limit (c3)",
         value = 14,
         min = 5,
         max = 50,
@@ -188,13 +180,31 @@ model_params = {
     ),
 
     "c4DisruptionClimateUpperThreshold": Slider(
-        label="Disruption Climate Upper Threshold (c4)",
+        label="Disruption Climate Upper Limit (c4)",
         value = 24,
         min = 5,
         max = 50,
         step = 1,
     ),
+
+    "c5DisruptionStartTurn": Slider(
+        label="Disruption Start (c5)",
+        value = 500,
+        min = 100,
+        max = 2000,
+        step = 25,
+    ),
+
+    "c6DisruptionEndTurn": Slider(
+        label="Disruption End (c6)",
+        value = 1000,
+        min = 100,
+        max = 2000,
+        step = 25,
+    ),
 }
+
+populationPlot = make_plot_component("Population")
 
 model = RiverValley()
 
@@ -203,7 +213,8 @@ page = SolaraViz(
     components = [make_space_component(propertylayer_portrayal=propertyLayerVisualization_basic, agent_portrayal=agent_portrayal),
                   make_space_component(propertylayer_portrayal=propertyLayerVisualization_yields, agent_portrayal=agent_portrayal),
                   make_space_component(propertylayer_portrayal=propertyLayerVisualization_methadology, agent_portrayal=agent_portrayal),
-                  make_space_component(propertylayer_portrayal=propertyLayerVisualization_infrastructure, agent_portrayal=agent_portrayal)],
+                  make_space_component(propertylayer_portrayal=propertyLayerVisualization_infrastructure, agent_portrayal=agent_portrayal),
+                  populationPlot],
     model_params=model_params,
     name="River Valley Model",
 )

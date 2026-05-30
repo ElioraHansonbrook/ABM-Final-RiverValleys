@@ -7,7 +7,8 @@ ABM Final Project - River Valley Model
 
 from typing import Any, cast
 from agents import Person
-from mesa import Model
+from mesa import Model, DataCollector
+import math
 from mesa.discrete_space import HexGrid
 from mesa.discrete_space import Grid
 from mesa.space import PropertyLayer
@@ -31,6 +32,8 @@ class RiverValley(Model):
                 c2InitialClimateUpperThreshold = 34,
                 c3DisruptionClimateLowerThreshold = 14,
                 c4DisruptionClimateUpperThreshold = 24,
+                c5DisruptionStartTurn = 500,
+                c6DisruptionEndTurn = 525,
                 ) -> None:
         super().__init__(seed=seed)
         self.generator = random.Random()
@@ -48,10 +51,16 @@ class RiverValley(Model):
         self.c2InitialClimateUpperThreshold = c2InitialClimateUpperThreshold
         self.c3DisruptionClimateLowerThreshold = c3DisruptionClimateLowerThreshold
         self.c4DisruptionClimateUpperThreshold = c4DisruptionClimateUpperThreshold
+        self.c5DisruptionStartTurn = c5DisruptionStartTurn
+        self.c6DisruptionEndTurn = c6DisruptionEndTurn
+        self.turn = 0
         self.grid = HexGrid(dimensions = [height,width], torus = False, random=self.generator)
         self.generateTileFertility()
         self.finishTileGeneration()
         self.assignAgents(agentCount)
+        self.datacollector = DataCollector(
+            {"Population": lambda _: len(self.agents)}
+        )
 
     # Set the fertility of each individual tile, starting with the river.
     def generateTileFertility(self):
@@ -130,12 +139,16 @@ class RiverValley(Model):
     # Set the total possible yields for a tile in the given round
     def calculateTileYields(self):
         # Temporarily providing totally static climate
-        climate = self.random.randint(self.c1InitialClimateLowerThreshold, self.c2InitialClimateUpperThreshold + 1)
+        if self.turn < self.c5DisruptionStartTurn or self.turn >= self.c6DisruptionEndTurn:
+            climate = self.random.randint(self.c1InitialClimateLowerThreshold, self.c2InitialClimateUpperThreshold + 1)
+        else:
+            climate = self.random.randint(self.c3DisruptionClimateLowerThreshold, self.c4DisruptionClimateUpperThreshold + 1)
         for cell in self.grid._celllist:
-            cell.TotalYield = cell.Fertility * climate
-            cell.HGYield = max(cell.TotalYield * (1-cell.FarmingProportion)**2, 0)
-            cell.AgYield = max(cell.TotalYield * cell.FarmingProportion * cell.Fertility * cell.Population * cell.Infrastructure, 0)
+            cell.TotalYield = cell.Fertility * climate + climate
+            cell.HGYield = max(cell.TotalYield * (1-cell.FarmingProportion), 0)
+            cell.AgYield = max(cell.TotalYield * cell.FarmingProportion * (1 + cell.Infrastructure) - abs(cell.PreviousYield - cell.TotalYield), 0)
             cell.Population = len(cell._agents)
+            cell.PreviousYield = cell.TotalYield
 
     # Assign food to agents on each tile, based on agent preferences and food availability
     def feedAgents(self):
@@ -147,33 +160,34 @@ class RiverValley(Model):
                 totalPreference = (totalPreference[0] + agent.preference[0], totalPreference[1] + agent.preference[1])
             # Update farming utilization for this tile
             if totalPreference[0] + totalPreference[1] > 0: #Just to prevent Db0 Error
-                cell.FarmingUtilized = totalPreference[1] / (totalPreference[0] + totalPreference[1])
+                cell.FarmingUtilized = min(totalPreference[1] * 1/self.e1FarmedPortionPerPerson, 1.0)
             else:
                 cell.FarmingUtilized = 0
             for agent in cell.agents:
                 cast(Person, agent)
                 agent.food = (agent.preference[0]/totalPreference[0]*cell.HGYield, agent.preference[1]/totalPreference[1]*cell.AgYield)
-            #self.grid._mesa_property_layers["FarmingProportion"].data = uf
             if totalPreference[0] > 0: #Just to prevent Db0 Error
                 cell.IndividualHGYield = 1/totalPreference[0]*cell.HGYield
             else:
                 cell.IndividualHGYield = cell.HGYield
             if totalPreference[1] > 0: #Just to prevent Db0 Error
-                cell.IndividualAgYield = 1/totalPreference[1]*cell.AgYield
+                cell.IndividualAgYield = max(1/totalPreference[1]*cell.AgYield, 0)
             else:
                 cell.IndividualAgYield = cell.AgYield
 
     # Update the infrastructure and farmed proportions on each tile.
     def updateTiles(self):
         for cell in self.grid._celllist:
-            cell.Infrastructure = abs(cell.Infrastructure/self.e3InfrastructureDecayRate) + cell.FarmingProportion * cell.Population
+            #cell.Infrastructure = abs(cell.Infrastructure/self.e3InfrastructureDecayRate) + cell.FarmingProportion * cell.Population + 0.01 * cell.Population
+            cell.Infrastructure = abs(cell.Infrastructure/self.e3InfrastructureDecayRate) + math.log(1 + cell.FarmingProportion * cell.Population + 0.02 * cell.Population, self.e2FarmingDecayRate)
             if cell.FarmingUtilized > cell.FarmingProportion:
                 cell.FarmingProportion = cell.FarmingUtilized
             else:
-                cell.FarmingProportion = cell.FarmingProportion - abs(cell.FarmingUtilized - cell.FarmingProportion) / self.e2FarmingDecayRate
+                cell.FarmingProportion = min(cell.FarmingProportion - abs(cell.FarmingUtilized - cell.FarmingProportion) / self.e2FarmingDecayRate, 1.0)
 
     # A single step of the model
     def step(self):
+        self.turn += 1
         self.agents.do("ageUpdates")
         self.agents.do("updatePreference")
         self.calculateTileYields()
@@ -181,6 +195,7 @@ class RiverValley(Model):
         self.agents.do("reproduction")
         self.updateTiles()
         self.agents.do("move")
-        for agent in self.agents:
-            cast(Person, agent)
-            print(agent.preference)
+        self.datacollector.collect(self)
+        # for agent in self.agents:
+        #     cast(Person, agent)
+        #     print(agent.preference)
