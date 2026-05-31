@@ -13,6 +13,8 @@ from mesa.discrete_space import HexGrid
 from mesa.discrete_space import Grid
 from mesa.space import PropertyLayer
 import random
+from mesa.batchrunner import batch_run
+import os
 
 # A model of a river valley
 class RiverValley(Model):
@@ -59,8 +61,16 @@ class RiverValley(Model):
         self.finishTileGeneration()
         self.assignAgents(agentCount)
         self.datacollector = DataCollector(
-            {"Population": lambda _: len(self.agents)}
+            {"Population": lambda _: len(self.agents),
+            "PercentFarmed": self.percentFarmed}
         )
+
+    def percentFarmed(self):
+        cellCount = len(self.grid._celllist)
+        acc = 0.0
+        for cell in self.grid._celllist:
+            acc += cell.FarmingProportion
+        return acc/cellCount
 
     # Set the fertility of each individual tile, starting with the river.
     def generateTileFertility(self):
@@ -207,3 +217,28 @@ class RiverValley(Model):
         # for agent in self.agents:
         #     cast(Person, agent)
         #     print(agent.preference)
+
+# Batchrun the model
+if __name__ == '__main__':
+    # Specify parameters of interest
+    params = {"c3DisruptionClimateLowerThreshold": range(5, 20), "c4DisruptionClimateUpperThreshold": range(22, 30), "c5DisruptionStartTurn": range(250,600, 25), "c6DisruptionEndTurn": 601}
+    # Execute run
+    results = batch_run(
+        RiverValley,
+        parameters=params,
+        #rng = 10,
+        iterations=1,
+        max_steps=600,
+        number_processes=None,
+        data_collection_period=-1,
+        display_progress=True,
+    )
+    # Collect useful output data from the batch run via acc pattern
+    output = ""
+    for result in results:
+        output += str(result["c3DisruptionClimateLowerThreshold"])+"\t"+str(result["c4DisruptionClimateUpperThreshold"])+"\t"+str(result["c5DisruptionStartTurn"])+"\t"+str(result["Population"])+"\t"+str(result["PercentFarmed"]) + "\n"
+    # Replace the old output with the new output
+    os.remove("results.txt")
+    file = open("results.txt", 'w')
+    file.write(output)
+    file.close()
