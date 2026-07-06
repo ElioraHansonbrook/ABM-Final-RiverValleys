@@ -9,7 +9,7 @@ from mesa.discrete_space import CellAgent, Cell
 
 class Person(CellAgent):
     def __init__(self,
-                model: model,
+                model,
                 cell,
                 preference = (0.99, 0.01), # Food acquisition preference
                 age = 0,

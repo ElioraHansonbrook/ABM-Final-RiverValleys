@@ -109,7 +109,7 @@ model_params = {
 
     "e2FarmingDecayRate": Slider(
         label="Farming Decay Rate (e2)",
-        value = 120,
+        value = 8,
         min = 1,
         max = 100,
         step = 1,
@@ -117,7 +117,7 @@ model_params = {
 
     "e3InfrastructureDecayRate": Slider(
         label="Infrastructure Decay Rate (e3)",
-        value = 2,
+        value = 33,
         min = 1,
         max = 100,
         step = 1,

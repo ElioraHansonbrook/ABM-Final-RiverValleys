@@ -221,7 +221,7 @@ class RiverValley(Model):
 # Batchrun the model
 if __name__ == '__main__':
     # Specify parameters of interest
-    params = {"c3DisruptionClimateLowerThreshold": range(5, 20), "c4DisruptionClimateUpperThreshold": range(22, 30), "c5DisruptionStartTurn": range(250,600, 25), "c6DisruptionEndTurn": 601}
+    params = {"c3DisruptionClimateLowerThreshold": range(3, 20), "c4DisruptionClimateUpperThreshold": range(22, 40), "c5DisruptionStartTurn": range(250,600, 10), "c6DisruptionEndTurn": 601}
     # Execute run
     results = batch_run(
         RiverValley,
